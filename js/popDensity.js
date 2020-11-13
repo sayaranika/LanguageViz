@@ -1,5 +1,5 @@
-var height = window.innerHeight - 20,
-    width = window.innerWidth - 20;
+var height = window.innerHeight-20,
+    width = window.innerWidth-20;
 
 // invisible map of polygons
 var polyCanvas = d3.select("body")
@@ -18,19 +18,19 @@ var dotCanvas = container.append("canvas")
     .attr("height",height); 
 	
 
-container.style({
+/*container.style({
 	"position": "relative",
 	"width": (width) + "px",
 	"height": (height) + "px",
     "overflow": "hidden"
-});
+});*/
 
 var pi = Math.PI,
 tau = 2 * pi;
     
 var projection = d3.geoMercator()
     .scale((1 << 18) / tau)
-    .translate([width/3, height/2])
+    .translate([width/6, height/2])
     .center([-123.17, 49.26]);
 
 var path = d3.geoPath()
@@ -39,9 +39,9 @@ var path = d3.geoPath()
 var polyContext = polyCanvas.node().getContext("2d");
 dotContext = dotCanvas.node().getContext("2d");
 
-dotCanvas.style({
+/*dotCanvas.style({
     "position": "absolute",
-});
+});*/
 
 var features;
 

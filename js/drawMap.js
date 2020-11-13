@@ -20,7 +20,7 @@ var projection = d3.geoMercator()
 
 var path = d3.geoPath()
     .projection(projection)
-    d3.json('data/geos.json')
+    /*d3.json('data/geos.json')
     .then(data => {
         var regions = topojson.feature(data, data.objects.geos).features;
         //console.log(regions);
@@ -32,7 +32,7 @@ var path = d3.geoPath()
             .append('path')
             .attr("class", "DA")
             .attr('d', path);
-    });
+    });*/
 
 
 d3.json('data/geosCSD.json')
