@@ -1,63 +1,75 @@
+//------------ GLOBAL VARIABLES ----------------------
 
-var width = window.innerWidth - 20,
-height = window.height - 20;
+const width = window.innerWidth,
+    height = window.innerHeight - 100;
 
-var loadingText = d3.select("body").append("div")
-.text("Loading...");
+//----------------------------------------------------
 
-var svg = d3.select("body").append("svg") 
-.attr("width", width)
-.attr("height", height);
 
+//-----------SET UP CANVAS AND CONTEXT -------------------
 var canvas = d3.select("body").append("canvas")
-.attr("width", width)
-.attr("height", height);
+    .attr("width", width)
+    .attr("height", height);
 
 var context = canvas.node().getContext("2d");
+//-------------------------------------------------------
 
+
+//------------SET UP PROJECTION AND PATH FOR MAPPING ----------------------
 var pi = Math.PI,
 tau = 2 * pi;
 
 
 var projection = d3.geoMercator()
-.scale((1 << 18) / tau)
-.translate([width/6, height])
-.center([-123.17, 49.26]);
+    .scale((1 << 18) / tau)
+    .translate([width/6, height/2])
+    .center([-123.17, 49.26]);
 
 var path = d3.geoPath()
-.projection(projection)
-.context(context);
+    .projection(projection)
+    .context(context);
 
 
-d3.csv('data/fdata.csv').then( row => {
+//-----------READ DATA FROM data.csv---------------------------------------------------
+d3.csv('data/fdata.csv').then( data => {
+    drawDotMap(data); 
+});
+//---------------------------------------------------------------------------------------
 
-    var langData;
+
+//--------------DRAW DOT MAP FUNCTION -------------------------------------------------
+function drawDotMap(langData)
+{
     d3.json("data/geos.json").then(function(data) {
-        console.log(data);
         features = topojson.feature(data, data.objects.geos).features;
-     
+        
         features
           .forEach(function(feature) {
               
             feature.properties.area = path.area(feature);
             feature.properties.bounds = path.bounds(feature);
+            
+            
+            langData
+                .forEach(function (row) {
+                    if(feature.properties.id === row['GeoUID'])
+                    {
+                        //console.log("here");
 
-            langData = row.filter(ob => {
-                return ob.GeoUID == feature.properties.id;
-              })
-            
-            //console.log(langData);
-            
-            feature.properties.officialLang = +langData[0].OfficialLanguage;
-            feature.properties.aboriginalLang = +langData[0].AboriginalLanguages;
-            feature.properties.nonAboriginalLang = +langData[0].NonAboriginalLanguages;
-
-            // mobility_total = total population
-            //feature.properties.pop = +feature.properties.pop;
-            
+                        feature.properties.officialLang = +row['v_CA16_1361: Official languages'];
+                        feature.properties.aboriginalLang = +row['v_CA16_1373: Aboriginal languages'];
+                        feature.properties.nonAboriginalLang = +row['v_CA16_1622: Non-Aboriginal languages'];
+                    }
+                    else
+                    {
+                        console.log("here");
+                    }
+                    
+                });
+            console.log(feature);
             
           });
-    
+
         features
           .forEach(function(feature) {
             context.save();
@@ -75,18 +87,19 @@ d3.csv('data/fdata.csv').then( row => {
             var p = feature.properties.area / (width * height);
             
             // desired number of pixels to draw in polygon (only approximates) 
-            var n = feature.properties.pop / 10;
-            
-           
+            var n = feature.properties.pop / 20;
+           /* var n = (feature.properties.officialLang
+                    + feature.properties.aboriginalLang
+                    + feature.properties.nonAboriginalLang)/100;*/
             
             var points = createPoints(width, height, p, n);
-            //console.log(points);
+            
             // draw a pixel for every 10 people
             points.forEach(function(d) {
               context.beginPath();
               
               // blue for old resident, orange for new resident
-              context.fillStyle = Math.random() < feature.properties.officialLang ? 
+              context.fillStyle = Math.random() < true ? 
                   "#91bfdb" : "#fc8d59";
                   
               // draw pixel
@@ -99,38 +112,14 @@ d3.csv('data/fdata.csv').then( row => {
         
         loadingText.remove();
         
-    
-      });     
-});
+      });
+}
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-  // Creates a bound set of points with a specific density
-  function createPoints(width, height, p, n) {
+//------------------------ REST FUNCTIONS ---------------------
+// Creates a bound set of points with a specific density
+function createPoints(width, height, p, n) {
     // width and height are the dimensions of the bounding rectangle
     // p is the percentage of this rectangle's area covered by polygon
     // n is the desired number of points within the polygon
@@ -221,3 +210,4 @@ d3.csv('data/fdata.csv').then( row => {
       return s;
     }
   }
+
